@@ -242,7 +242,13 @@ function getGatewayEnv() {
   };
 }
 
-export const api = onRequest({ region: 'us-central1', cors: false }, async (request, response) => {
+export const api = onRequest(
+  {
+    region: 'us-central1',
+    cors: false,
+    secrets: ['CLAWDBOT_GATEWAY_URL', 'CLAWDBOT_SESSION_KEY'],
+  },
+  async (request, response) => {
   writeCors(response);
 
   if (request.method === 'OPTIONS') {
@@ -358,4 +364,5 @@ export const api = onRequest({ region: 'us-central1', cors: false }, async (requ
   } finally {
     client.close();
   }
-});
+  }
+);

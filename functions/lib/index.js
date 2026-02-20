@@ -223,7 +223,11 @@ function getGatewayEnv() {
         defaultSessionKey,
     };
 }
-exports.api = (0, https_1.onRequest)({ region: 'us-central1', cors: false }, async (request, response) => {
+exports.api = (0, https_1.onRequest)({
+    region: 'us-central1',
+    cors: false,
+    secrets: ['CLAWDBOT_GATEWAY_URL', 'CLAWDBOT_SESSION_KEY'],
+}, async (request, response) => {
     writeCors(response);
     if (request.method === 'OPTIONS') {
         response.status(204).send('');
