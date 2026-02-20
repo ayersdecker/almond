@@ -60,10 +60,20 @@ export function useTextToSpeech(): TextToSpeechHook {
       setError(err instanceof Error ? err.message : 'TTS failed');
       // Fallback to browser TTS
       if ('speechSynthesis' in window) {
+        setIsSpeaking(true);
         const utterance = new SpeechSynthesisUtterance(next.text);
         utterance.rate = speed;
-        utterance.onend = () => playNext();
+        utterance.onend = () => {
+          setIsSpeaking(false);
+          playNext();
+        };
+        utterance.onerror = () => {
+          setIsSpeaking(false);
+          playNext();
+        };
         window.speechSynthesis.speak(utterance);
+      } else {
+        playNext();
       }
     }
   }, [speed]);

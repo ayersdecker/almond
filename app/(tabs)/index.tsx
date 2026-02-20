@@ -23,14 +23,15 @@ export default function ChatScreen() {
     }
   }, [loading, isAuthenticated]);
 
-  // Subscribe to Firestore messages
+  // Subscribe to Firestore for real-time sync; messages are merged into local context state
   useEffect(() => {
     if (!user) return;
     const unsubscribe = subscribeToMessages(user.uid, (firestoreMessages) => {
-      // Messages are already managed by context; Firestore provides persistence
+      // Sync any messages added from other devices by adding ones not yet in local state
+      firestoreMessages.forEach((msg) => addMessage(msg));
     });
     return unsubscribe;
-  }, [user, subscribeToMessages]);
+  }, [user, subscribeToMessages, addMessage]);
 
   const handleSendMessage = useCallback(
     async (content: string) => {

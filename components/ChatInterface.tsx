@@ -69,7 +69,15 @@ export function ChatInterface({ messages, isLoading, onSendMessage }: ChatInterf
         renderItem={({ item }) => (
           <MessageBubble
             message={item}
-            onPlayAudio={(url) => speak(item.content)}
+            onPlayAudio={(url) => {
+              // Play pre-generated audio URL directly if available, otherwise re-synthesize
+              if (url) {
+                const audio = new Audio(url);
+                audio.play().catch(() => speak(item.content));
+              } else {
+                speak(item.content);
+              }
+            }}
           />
         )}
         contentContainerStyle={styles.messageList}

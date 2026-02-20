@@ -61,5 +61,6 @@ self.addEventListener('sync', (event) => {
 });
 
 async function syncQueuedMessages() {
-  // Implementation handled client-side
+  // Queued message sync is handled client-side via IndexedDB;
+  // this tag is registered by the client when coming back online.
 }

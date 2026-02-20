@@ -10,10 +10,11 @@ interface VoiceButtonProps {
 
 export function VoiceButton({ isListening, isSupported, onPressIn, onPressOut }: VoiceButtonProps) {
   const pulseAnim = useRef(new Animated.Value(1)).current;
+  const loopRef = useRef<Animated.CompositeAnimation | null>(null);
 
   React.useEffect(() => {
     if (isListening) {
-      Animated.loop(
+      loopRef.current = Animated.loop(
         Animated.sequence([
           Animated.timing(pulseAnim, {
             toValue: 1.2,
@@ -26,9 +27,11 @@ export function VoiceButton({ isListening, isSupported, onPressIn, onPressOut }:
             useNativeDriver: true,
           }),
         ])
-      ).start();
+      );
+      loopRef.current.start();
     } else {
-      pulseAnim.stopAnimation();
+      loopRef.current?.stop();
+      loopRef.current = null;
       pulseAnim.setValue(1);
     }
   }, [isListening, pulseAnim]);
