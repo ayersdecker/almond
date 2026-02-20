@@ -11,7 +11,7 @@ import { Message } from '@/lib/types';
 
 export default function ChatScreen() {
   const { user, isAuthenticated, loading } = useAuth();
-  const { messages, addMessage, setLoading, isLoading } = useConversation();
+  const { messages, addMessage, setMessages, setLoading, isLoading } = useConversation();
   const { sendMsg } = useClawdbot();
   const { subscribeToMessages } = useFirebase();
   const { speak } = useTextToSpeech();
@@ -23,15 +23,14 @@ export default function ChatScreen() {
     }
   }, [loading, isAuthenticated]);
 
-  // Subscribe to Firestore for real-time sync; messages are merged into local context state
+  // Subscribe to Firestore for real-time sync; replace local state with Firestore messages
   useEffect(() => {
     if (!user) return;
     const unsubscribe = subscribeToMessages(user.uid, (firestoreMessages) => {
-      // Sync any messages added from other devices by adding ones not yet in local state
-      firestoreMessages.forEach((msg) => addMessage(msg));
+      setMessages(firestoreMessages);
     });
     return unsubscribe;
-  }, [user, subscribeToMessages, addMessage]);
+  }, [user, subscribeToMessages, setMessages]);
 
   const handleSendMessage = useCallback(
     async (content: string) => {

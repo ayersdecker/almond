@@ -9,6 +9,7 @@ interface ConversationState {
 
 type ConversationAction =
   | { type: 'ADD_MESSAGE'; payload: Message }
+  | { type: 'SET_MESSAGES'; payload: Message[] }
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERROR'; payload: string | null }
   | { type: 'CLEAR_MESSAGES' }
@@ -21,6 +22,8 @@ function conversationReducer(
   switch (action.type) {
     case 'ADD_MESSAGE':
       return { ...state, messages: [...state.messages, action.payload] };
+    case 'SET_MESSAGES':
+      return { ...state, messages: action.payload };
     case 'SET_LOADING':
       return { ...state, isLoading: action.payload };
     case 'SET_ERROR':
@@ -41,6 +44,7 @@ function conversationReducer(
 
 interface ConversationContextType extends ConversationState {
   addMessage: (message: Message) => void;
+  setMessages: (messages: Message[]) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   clearMessages: () => void;
@@ -58,6 +62,10 @@ export function ConversationProvider({ children }: { children: React.ReactNode }
 
   const addMessage = useCallback((message: Message) => {
     dispatch({ type: 'ADD_MESSAGE', payload: message });
+  }, []);
+
+  const setMessages = useCallback((msgs: Message[]) => {
+    dispatch({ type: 'SET_MESSAGES', payload: msgs });
   }, []);
 
   const setLoading = useCallback((loading: boolean) => {
@@ -78,7 +86,7 @@ export function ConversationProvider({ children }: { children: React.ReactNode }
 
   return (
     <ConversationContext.Provider
-      value={{ ...state, addMessage, setLoading, setError, clearMessages, updateMessage }}
+      value={{ ...state, addMessage, setMessages, setLoading, setError, clearMessages, updateMessage }}
     >
       {children}
     </ConversationContext.Provider>
