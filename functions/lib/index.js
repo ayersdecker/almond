@@ -209,10 +209,10 @@ class GatewayClient {
     }
 }
 function getGatewayEnv() {
-    const gatewayUrl = process.env.CLAWDBOT_GATEWAY_URL;
-    const gatewayToken = process.env.CLAWDBOT_GATEWAY_TOKEN;
-    const gatewayPassword = process.env.CLAWDBOT_GATEWAY_PASSWORD;
-    const defaultSessionKey = process.env.CLAWDBOT_SESSION_KEY || 'main';
+    const gatewayUrl = process.env.CLAWDBOT_GATEWAY_URL?.trim();
+    const gatewayToken = process.env.CLAWDBOT_GATEWAY_TOKEN?.trim();
+    const gatewayPassword = process.env.CLAWDBOT_GATEWAY_PASSWORD?.trim();
+    const defaultSessionKey = process.env.CLAWDBOT_SESSION_KEY?.trim() || 'main';
     if (!gatewayUrl) {
         throw new Error('CLAWDBOT_GATEWAY_URL is not set in Functions environment');
     }
@@ -226,7 +226,7 @@ function getGatewayEnv() {
 exports.api = (0, https_1.onRequest)({
     region: 'us-central1',
     cors: false,
-    secrets: ['CLAWDBOT_GATEWAY_URL', 'CLAWDBOT_SESSION_KEY'],
+    secrets: ['CLAWDBOT_GATEWAY_URL', 'CLAWDBOT_GATEWAY_TOKEN', 'CLAWDBOT_SESSION_KEY'],
 }, async (request, response) => {
     writeCors(response);
     if (request.method === 'OPTIONS') {
