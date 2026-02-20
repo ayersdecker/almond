@@ -308,6 +308,24 @@ export const api = onRequest(
         return;
       }
 
+      const baselineHistory = (await client.request('chat.history', {
+        sessionKey,
+        limit: 200,
+      })) as Record<string, unknown>;
+      const baselineMessages = Array.isArray(baselineHistory.messages)
+        ? (baselineHistory.messages as Array<Record<string, unknown>>)
+        : [];
+      const baselineLastAssistantText = (() => {
+        for (let index = baselineMessages.length - 1; index >= 0; index -= 1) {
+          const item = baselineMessages[index];
+          const role = String(item.role || '').toLowerCase();
+          if (role !== 'assistant') continue;
+          const text = extractText(item);
+          if (text) return text;
+        }
+        return '';
+      })();
+
       const idempotencyKey = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
       await client.request('chat.send', {
@@ -323,12 +341,13 @@ export const api = onRequest(
       while (!assistantText && Date.now() - startedAt < 20000) {
         const history = (await client.request('chat.history', {
           sessionKey,
-          limit: 40,
+          limit: 200,
         })) as Record<string, unknown>;
 
         const messages = Array.isArray(history.messages)
           ? (history.messages as Array<Record<string, unknown>>)
           : [];
+        const hasNewMessages = messages.length > baselineMessages.length;
 
         for (let index = messages.length - 1; index >= 0; index -= 1) {
           const item = messages[index];
@@ -336,7 +355,11 @@ export const api = onRequest(
           if (role !== 'assistant') continue;
 
           const text = extractText(item);
-          if (text) {
+          if (!text) {
+            continue;
+          }
+
+          if (hasNewMessages || text !== baselineLastAssistantText) {
             assistantText = text;
             break;
           }

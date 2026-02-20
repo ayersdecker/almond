@@ -277,6 +277,25 @@ exports.api = (0, https_1.onRequest)({
                 response.status(400).json({ error: 'Message content is required' });
                 return;
             }
+            const baselineHistory = (await client.request('chat.history', {
+                sessionKey,
+                limit: 200,
+            }));
+            const baselineMessages = Array.isArray(baselineHistory.messages)
+                ? baselineHistory.messages
+                : [];
+            const baselineLastAssistantText = (() => {
+                for (let index = baselineMessages.length - 1; index >= 0; index -= 1) {
+                    const item = baselineMessages[index];
+                    const role = String(item.role || '').toLowerCase();
+                    if (role !== 'assistant')
+                        continue;
+                    const text = extractText(item);
+                    if (text)
+                        return text;
+                }
+                return '';
+            })();
             const idempotencyKey = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
             await client.request('chat.send', {
                 sessionKey,
@@ -289,18 +308,22 @@ exports.api = (0, https_1.onRequest)({
             while (!assistantText && Date.now() - startedAt < 20000) {
                 const history = (await client.request('chat.history', {
                     sessionKey,
-                    limit: 40,
+                    limit: 200,
                 }));
                 const messages = Array.isArray(history.messages)
                     ? history.messages
                     : [];
+                const hasNewMessages = messages.length > baselineMessages.length;
                 for (let index = messages.length - 1; index >= 0; index -= 1) {
                     const item = messages[index];
                     const role = String(item.role || '').toLowerCase();
                     if (role !== 'assistant')
                         continue;
                     const text = extractText(item);
-                    if (text) {
+                    if (!text) {
+                        continue;
+                    }
+                    if (hasNewMessages || text !== baselineLastAssistantText) {
                         assistantText = text;
                         break;
                     }
