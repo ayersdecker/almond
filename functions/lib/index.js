@@ -95,6 +95,7 @@ class GatewayClient {
     ws = null;
     pending = new Map();
     connected = false;
+    runWaiters = new Map();
     constructor(url, token, password) {
         this.url = url;
         this.token = token;
@@ -152,6 +153,31 @@ class GatewayClient {
                 catch {
                     return;
                 }
+                if (parsed.type === 'event') {
+                    const eventName = parsed.event;
+                    if (eventName === 'chat' && parsed.payload && typeof parsed.payload === 'object') {
+                        const payload = parsed.payload;
+                        const runId = typeof payload.runId === 'string' ? payload.runId : '';
+                        const waiter = runId ? this.runWaiters.get(runId) : undefined;
+                        if (waiter) {
+                            const payloadSessionKey = typeof payload.sessionKey === 'string' ? payload.sessionKey : '';
+                            if (!payloadSessionKey || payloadSessionKey === waiter.sessionKey) {
+                                const message = payload.message;
+                                const textContent = extractText(message);
+                                if (textContent) {
+                                    waiter.latestText = textContent;
+                                }
+                                const state = typeof payload.state === 'string' ? payload.state : '';
+                                if (state === 'final') {
+                                    clearTimeout(waiter.timeout);
+                                    this.runWaiters.delete(runId);
+                                    waiter.resolve(waiter.latestText || textContent || '');
+                                }
+                            }
+                        }
+                    }
+                    return;
+                }
                 if (parsed.type !== 'res') {
                     return;
                 }
@@ -179,6 +205,34 @@ class GatewayClient {
                     item.reject(new Error('Gateway websocket closed'));
                     this.pending.delete(id);
                 }
+                for (const [runId, waiter] of this.runWaiters.entries()) {
+                    clearTimeout(waiter.timeout);
+                    waiter.reject(new Error('Gateway websocket closed while waiting for chat response'));
+                    this.runWaiters.delete(runId);
+                }
+            });
+        });
+    }
+    waitForRunFinal(runId, sessionKey, timeoutMs = 20000) {
+        if (!runId) {
+            return Promise.reject(new Error('runId is required'));
+        }
+        const existing = this.runWaiters.get(runId);
+        if (existing) {
+            clearTimeout(existing.timeout);
+            this.runWaiters.delete(runId);
+        }
+        return new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => {
+                this.runWaiters.delete(runId);
+                reject(new Error(`Timed out waiting for run ${runId}`));
+            }, timeoutMs);
+            this.runWaiters.set(runId, {
+                sessionKey,
+                resolve,
+                reject,
+                timeout,
+                latestText: '',
             });
         });
     }
@@ -206,6 +260,11 @@ class GatewayClient {
         this.ws?.close();
         this.ws = null;
         this.connected = false;
+        for (const [runId, waiter] of this.runWaiters.entries()) {
+            clearTimeout(waiter.timeout);
+            waiter.reject(new Error('Gateway client closed while waiting for run result'));
+            this.runWaiters.delete(runId);
+        }
     }
 }
 function getGatewayEnv() {
@@ -296,16 +355,31 @@ exports.api = (0, https_1.onRequest)({
                 }
                 return '';
             })();
-            const idempotencyKey = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-            await client.request('chat.send', {
+            const idempotencyKey = `proxy-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+            const sendResult = (await client.request('chat.send', {
                 sessionKey,
                 message: content,
                 deliver: false,
                 idempotencyKey,
-            });
+            }));
+            const runId = typeof sendResult?.runId === 'string' && sendResult.runId.trim()
+                ? sendResult.runId.trim()
+                : idempotencyKey;
+            const runResponsePromise = client.waitForRunFinal(runId, sessionKey, 20000);
             const startedAt = Date.now();
             let assistantText = '';
             while (!assistantText && Date.now() - startedAt < 20000) {
+                if (!assistantText) {
+                    try {
+                        assistantText = await runResponsePromise;
+                        if (assistantText) {
+                            break;
+                        }
+                    }
+                    catch {
+                        // Fall back to history polling below
+                    }
+                }
                 const history = (await client.request('chat.history', {
                     sessionKey,
                     limit: 200,
@@ -319,6 +393,10 @@ exports.api = (0, https_1.onRequest)({
                     const role = String(item.role || '').toLowerCase();
                     if (role !== 'assistant')
                         continue;
+                    const messageRunId = typeof item.runId === 'string' ? item.runId : '';
+                    if (messageRunId && messageRunId !== runId) {
+                        continue;
+                    }
                     const text = extractText(item);
                     if (!text) {
                         continue;
