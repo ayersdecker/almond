@@ -7,7 +7,7 @@ A production-ready Progressive Web App (PWA) for a conversational AI assistant n
 - 🎤 **Voice Input** - Push-to-talk speech recognition (Web Speech API)
 - 🔊 **Voice Output** - Natural text-to-speech via ElevenLabs API
 - 💬 **Real-time Chat** - Persistent conversation history via Firebase Firestore
-- 🔐 **Authentication** - GitHub OAuth + Email/Password via Firebase Auth
+- 🔐 **Authentication** - Google OAuth + Email/Password via Firebase Auth
 - 📱 **PWA** - Install on any device, offline support
 - 📊 **Status Dashboard** - Memory files viewer, session stats
 - 🌙 **Dark Theme** - Clean dark UI optimized for all screen sizes
@@ -72,7 +72,7 @@ Add the environment variables as secrets in your GitHub repository settings, the
 ## Firebase Setup
 
 1. Create a Firebase project at [console.firebase.google.com](https://console.firebase.google.com)
-2. Enable Authentication (GitHub provider + Email/Password)
+2. Enable Authentication (Google provider + Email/Password)
 3. Enable Firestore Database
 4. Enable Storage
 5. Deploy Firestore rules: `firebase deploy --only firestore:rules`
@@ -81,6 +81,7 @@ Add the environment variables as secrets in your GitHub repository settings, the
 
 - **Voice input not working**: Web Speech API requires Chrome or Edge browser
 - **TTS not working**: Check your ElevenLabs API key and quota
-- **Auth failing**: Ensure Firebase GitHub OAuth is configured with correct callback URL
+- **Auth failing**: Ensure Firebase Google sign-in is enabled and your domain is in Authorized domains
+- **Backend offline**: Set `EXPO_PUBLIC_CLAWDBOT_URL` to your deployed proxy URL (see `functions/README.md`)
 - **PWA install prompt**: Must be served over HTTPS
 Personal PC to Home Agent Portal - Not Public

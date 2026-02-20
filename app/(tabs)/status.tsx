@@ -10,7 +10,7 @@ import { MemoryViewer } from '@/components/MemoryViewer';
 export default function StatusScreen() {
   const { user, isAuthenticated, loading, signOut } = useAuth();
   const { messages, clearMessages } = useConversation();
-  const { sessionStatus, memoryFiles, isLoading, fetchStatus, fetchMemoryFiles } = useClawdbot();
+  const { sessionStatus, memoryFiles, isLoading, error, fetchStatus, fetchMemoryFiles } = useClawdbot();
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -60,7 +60,7 @@ export default function StatusScreen() {
         <Text style={styles.userEmail}>{user?.email}</Text>
       </View>
 
-      <StatusCard status={sessionStatus} isLoading={isLoading} />
+      <StatusCard status={sessionStatus} isLoading={isLoading} error={error} />
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Quick Actions</Text>

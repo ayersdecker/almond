@@ -5,6 +5,7 @@ import { SessionStatus } from '@/lib/types';
 interface StatusCardProps {
   status: SessionStatus | null;
   isLoading: boolean;
+  error?: string | null;
 }
 
 function formatUptime(seconds: number): string {
@@ -14,7 +15,7 @@ function formatUptime(seconds: number): string {
   return `${h}h ${m}m ${s}s`;
 }
 
-export function StatusCard({ status, isLoading }: StatusCardProps) {
+export function StatusCard({ status, isLoading, error }: StatusCardProps) {
   if (isLoading) {
     return (
       <View style={styles.card}>
@@ -27,6 +28,7 @@ export function StatusCard({ status, isLoading }: StatusCardProps) {
     return (
       <View style={styles.card}>
         <Text style={styles.offlineText}>Backend offline</Text>
+        {error ? <Text style={styles.errorText}>{error}</Text> : null}
       </View>
     );
   }
@@ -91,5 +93,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 14,
     fontWeight: '600',
+  },
+  errorText: {
+    color: '#94a3b8',
+    textAlign: 'center',
+    fontSize: 12,
+    marginTop: 6,
   },
 });
