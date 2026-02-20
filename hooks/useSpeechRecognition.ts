@@ -80,17 +80,31 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
 
   const startListening = useCallback(() => {
     if (!isSupported || !recognitionRef.current) return;
+    if (isListening) return;
+
     setError(null);
     setTranscript('');
     setInterimTranscript('');
-    recognitionRef.current.start();
-    setIsListening(true);
-  }, [isSupported]);
+
+    try {
+      recognitionRef.current.start();
+      setIsListening(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to start speech recognition');
+      setIsListening(false);
+    }
+  }, [isSupported, isListening]);
 
   const stopListening = useCallback(() => {
     if (!recognitionRef.current) return;
-    recognitionRef.current.stop();
-    setIsListening(false);
+
+    try {
+      recognitionRef.current.stop();
+    } catch {
+      // Ignore stop errors when recognition is already stopped
+    } finally {
+      setIsListening(false);
+    }
   }, []);
 
   const resetTranscript = useCallback(() => {

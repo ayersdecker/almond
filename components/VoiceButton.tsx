@@ -27,18 +27,20 @@ export function VoiceButton({ isListening, isSupported, onPressIn, onPressOut }:
       : { shadowColor: '#06b6d4' };
 
   React.useEffect(() => {
+    const useNativeDriver = Platform.OS !== 'web';
+
     if (isListening) {
       loopRef.current = Animated.loop(
         Animated.sequence([
           Animated.timing(pulseAnim, {
             toValue: 1.2,
             duration: 800,
-            useNativeDriver: true,
+            useNativeDriver,
           }),
           Animated.timing(pulseAnim, {
             toValue: 1,
             duration: 800,
-            useNativeDriver: true,
+            useNativeDriver,
           }),
         ])
       );
@@ -61,8 +63,11 @@ export function VoiceButton({ isListening, isSupported, onPressIn, onPressOut }:
   return (
     <Animated.View style={[styles.pulseWrapper, { transform: [{ scale: pulseAnim }] }]}>
       <TouchableOpacity
-        onPressIn={onPressIn}
-        onPressOut={onPressOut}
+        onPress={
+          Platform.OS === 'web' ? () => (isListening ? onPressOut() : onPressIn()) : undefined
+        }
+        onPressIn={Platform.OS === 'web' ? undefined : onPressIn}
+        onPressOut={Platform.OS === 'web' ? undefined : onPressOut}
         style={[
           styles.button,
           buttonShadowStyle,
@@ -70,7 +75,7 @@ export function VoiceButton({ isListening, isSupported, onPressIn, onPressOut }:
           isListening && buttonActiveShadowStyle,
         ]}
         activeOpacity={0.8}
-        accessibilityLabel={isListening ? 'Stop recording' : 'Hold to record'}
+        accessibilityLabel={isListening ? 'Stop recording' : 'Start recording'}
         accessibilityRole="button"
         accessibilityState={{ selected: isListening }}
       >
