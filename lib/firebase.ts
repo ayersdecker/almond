@@ -2,14 +2,16 @@ import { FirebaseApp, initializeApp, getApps } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
+import { Analytics, getAnalytics, isSupported } from 'firebase/analytics';
 
 const firebaseConfig = {
-  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
+  apiKey: 'AIzaSyDTu9B9sa9l6ZR-qdnvp1GhRPseq0-84XA',
+  authDomain: 'joi-chat-30f52.firebaseapp.com',
+  projectId: 'joi-chat-30f52',
+  storageBucket: 'joi-chat-30f52.firebasestorage.app',
+  messagingSenderId: '106448449027',
+  appId: '1:106448449027:web:1d90a6bc5eab20922ce836',
+  measurementId: 'G-VSGDVZKQ5L',
 };
 
 const hasRequiredFirebaseConfig = [
@@ -30,4 +32,18 @@ export const isFirebaseConfigured = hasRequiredFirebaseConfig;
 export const auth = app ? getAuth(app) : null;
 export const db = app ? getFirestore(app) : null;
 export const storage = app ? getStorage(app) : null;
+export let analytics: Analytics | null = null;
+
+if (app && typeof window !== 'undefined') {
+  isSupported()
+    .then((supported) => {
+      if (supported) {
+        analytics = getAnalytics(app);
+      }
+    })
+    .catch(() => {
+      analytics = null;
+    });
+}
+
 export default app;

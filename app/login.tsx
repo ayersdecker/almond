@@ -18,13 +18,34 @@ export default function LoginScreen() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  const getAuthErrorMessage = (error: unknown, fallbackMessage: string) => {
+    const message = error instanceof Error ? error.message : '';
+
+    if (
+      message.includes('CONFIGURATION_NOT_FOUND') ||
+      message.includes('auth/configuration-not-found')
+    ) {
+      return 'Firebase Authentication is not configured for this project. Enable Auth in Firebase Console and verify API key restrictions.';
+    }
+
+    if (message.includes('auth/invalid-api-key')) {
+      return 'Firebase API key is invalid for this project. Check your Firebase web app configuration.';
+    }
+
+    if (message.includes('auth/operation-not-allowed')) {
+      return 'This sign-in method is not enabled in Firebase Authentication settings.';
+    }
+
+    return fallbackMessage;
+  };
+
   const handleGithubSignIn = async () => {
     setIsLoading(true);
     try {
       await signInWithGithub();
       router.replace('/(tabs)');
     } catch (error) {
-      Alert.alert('Sign In Error', 'Failed to sign in with GitHub');
+      Alert.alert('Sign In Error', getAuthErrorMessage(error, 'Failed to sign in with GitHub'));
     } finally {
       setIsLoading(false);
     }
@@ -44,7 +65,13 @@ export default function LoginScreen() {
       }
       router.replace('/(tabs)');
     } catch (error) {
-      Alert.alert('Auth Error', isSignUp ? 'Failed to create account' : 'Invalid email or password');
+      Alert.alert(
+        'Auth Error',
+        getAuthErrorMessage(
+          error,
+          isSignUp ? 'Failed to create account' : 'Invalid email or password'
+        )
+      );
     } finally {
       setIsLoading(false);
     }

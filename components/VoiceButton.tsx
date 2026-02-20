@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { TouchableOpacity, View, Text, StyleSheet, Animated } from 'react-native';
+import { TouchableOpacity, View, Text, StyleSheet, Animated, Platform } from 'react-native';
 
 interface VoiceButtonProps {
   isListening: boolean;
@@ -73,15 +73,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#3b82f6',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#3b82f6',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 4,
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0px 2px 8px rgba(59, 130, 246, 0.4)' }
+      : {
+          shadowColor: '#3b82f6',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.4,
+          shadowRadius: 8,
+          elevation: 4,
+        }),
   },
   buttonActive: {
     backgroundColor: '#06b6d4',
-    shadowColor: '#06b6d4',
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0px 2px 8px rgba(6, 182, 212, 0.4)' }
+      : { shadowColor: '#06b6d4' }),
   },
   icon: {
     fontSize: 24,
