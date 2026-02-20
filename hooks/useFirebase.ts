@@ -15,8 +15,12 @@ import {
 import { db } from '@/lib/firebase';
 import { Message, UserProfile, UserSettings } from '@/lib/types';
 
+const FIREBASE_NOT_CONFIGURED_ERROR =
+  'Firebase is not configured. Set EXPO_PUBLIC_FIREBASE_* environment variables.';
+
 export function useFirebase() {
   const saveMessage = useCallback(async (userId: string, message: Message) => {
+    if (!db) throw new Error(FIREBASE_NOT_CONFIGURED_ERROR);
     const messagesRef = collection(db, 'users', userId, 'conversations', 'default', 'messages');
     await addDoc(messagesRef, {
       role: message.role,
@@ -28,6 +32,7 @@ export function useFirebase() {
   }, []);
 
   const loadMessages = useCallback(async (userId: string): Promise<Message[]> => {
+    if (!db) throw new Error(FIREBASE_NOT_CONFIGURED_ERROR);
     const messagesRef = collection(db, 'users', userId, 'conversations', 'default', 'messages');
     const q = query(messagesRef, orderBy('timestamp', 'asc'), limit(50));
     const snapshot = await getDocs(q);
@@ -44,6 +49,9 @@ export function useFirebase() {
 
   const subscribeToMessages = useCallback(
     (userId: string, onUpdate: (messages: Message[]) => void): Unsubscribe => {
+      if (!db) {
+        return () => {};
+      }
       const messagesRef = collection(db, 'users', userId, 'conversations', 'default', 'messages');
       const q = query(messagesRef, orderBy('timestamp', 'asc'), limit(50));
 
@@ -63,6 +71,7 @@ export function useFirebase() {
   );
 
   const saveUserProfile = useCallback(async (profile: UserProfile) => {
+    if (!db) throw new Error(FIREBASE_NOT_CONFIGURED_ERROR);
     const userRef = doc(db, 'users', profile.uid);
     await setDoc(
       userRef,
@@ -78,6 +87,7 @@ export function useFirebase() {
   }, []);
 
   const updateUserSettings = useCallback(async (userId: string, settings: Partial<UserSettings>) => {
+    if (!db) throw new Error(FIREBASE_NOT_CONFIGURED_ERROR);
     const userRef = doc(db, 'users', userId);
     await setDoc(userRef, { settings }, { merge: true });
   }, []);

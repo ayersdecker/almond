@@ -1,4 +1,4 @@
-import { initializeApp, getApps } from 'firebase/app';
+import { FirebaseApp, initializeApp, getApps } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
@@ -12,10 +12,22 @@ const firebaseConfig = {
   appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Initialize Firebase (avoid re-initialization)
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+const hasRequiredFirebaseConfig = [
+  firebaseConfig.apiKey,
+  firebaseConfig.authDomain,
+  firebaseConfig.projectId,
+  firebaseConfig.appId,
+].every(Boolean);
 
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const storage = getStorage(app);
+// Initialize Firebase only when required config exists
+const app: FirebaseApp | null = hasRequiredFirebaseConfig
+  ? getApps().length === 0
+    ? initializeApp(firebaseConfig)
+    : getApps()[0]
+  : null;
+
+export const isFirebaseConfigured = hasRequiredFirebaseConfig;
+export const auth = app ? getAuth(app) : null;
+export const db = app ? getFirestore(app) : null;
+export const storage = app ? getStorage(app) : null;
 export default app;

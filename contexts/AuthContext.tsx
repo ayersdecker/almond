@@ -10,6 +10,9 @@ import {
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 
+const FIREBASE_NOT_CONFIGURED_ERROR =
+  'Firebase is not configured. Set EXPO_PUBLIC_FIREBASE_* environment variables.';
+
 interface AuthContextType {
   user: User | null;
   loading: boolean;
@@ -27,6 +30,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!auth) {
+      setLoading(false);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
       setLoading(false);
@@ -35,19 +43,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signInWithGithub = async () => {
+    if (!auth) throw new Error(FIREBASE_NOT_CONFIGURED_ERROR);
     const provider = new GithubAuthProvider();
     await signInWithPopup(auth, provider);
   };
 
   const signInWithEmail = async (email: string, password: string) => {
+    if (!auth) throw new Error(FIREBASE_NOT_CONFIGURED_ERROR);
     await signInWithEmailAndPassword(auth, email, password);
   };
 
   const signUpWithEmail = async (email: string, password: string) => {
+    if (!auth) throw new Error(FIREBASE_NOT_CONFIGURED_ERROR);
     await createUserWithEmailAndPassword(auth, email, password);
   };
 
   const signOut = async () => {
+    if (!auth) throw new Error(FIREBASE_NOT_CONFIGURED_ERROR);
     await firebaseSignOut(auth);
   };
 
