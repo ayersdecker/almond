@@ -4,7 +4,7 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
-  GithubAuthProvider,
+  GoogleAuthProvider,
   signInWithPopup,
   onAuthStateChanged,
 } from 'firebase/auth';
@@ -23,7 +23,7 @@ const ensureAuthReady = async () => {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  signInWithGithub: () => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<void>;
   signUpWithEmail: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -62,9 +62,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => unsubscribe?.();
   }, []);
 
-  const signInWithGithub = async () => {
+  const signInWithGoogle = async () => {
     const auth = await ensureAuthReady();
-    const provider = new GithubAuthProvider();
+    const provider = new GoogleAuthProvider();
     await signInWithPopup(auth, provider);
   };
 
@@ -89,7 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       value={{
         user,
         loading,
-        signInWithGithub,
+        signInWithGoogle,
         signInWithEmail,
         signUpWithEmail,
         signOut,

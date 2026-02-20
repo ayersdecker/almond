@@ -11,6 +11,20 @@ interface VoiceButtonProps {
 export function VoiceButton({ isListening, isSupported, onPressIn, onPressOut }: VoiceButtonProps) {
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const loopRef = useRef<Animated.CompositeAnimation | null>(null);
+  const buttonShadowStyle =
+    Platform.OS === 'web'
+      ? { boxShadow: '0px 2px 8px rgba(59, 130, 246, 0.4)' }
+      : {
+          shadowColor: '#3b82f6',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.4,
+          shadowRadius: 8,
+          elevation: 4,
+        };
+  const buttonActiveShadowStyle =
+    Platform.OS === 'web'
+      ? { boxShadow: '0px 2px 8px rgba(6, 182, 212, 0.4)' }
+      : { shadowColor: '#06b6d4' };
 
   React.useEffect(() => {
     if (isListening) {
@@ -49,7 +63,12 @@ export function VoiceButton({ isListening, isSupported, onPressIn, onPressOut }:
       <TouchableOpacity
         onPressIn={onPressIn}
         onPressOut={onPressOut}
-        style={[styles.button, isListening && styles.buttonActive]}
+        style={[
+          styles.button,
+          buttonShadowStyle,
+          isListening && styles.buttonActive,
+          isListening && buttonActiveShadowStyle,
+        ]}
         activeOpacity={0.8}
         accessibilityLabel={isListening ? 'Stop recording' : 'Hold to record'}
         accessibilityRole="button"
@@ -73,21 +92,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#3b82f6',
     justifyContent: 'center',
     alignItems: 'center',
-    ...(Platform.OS === 'web'
-      ? { boxShadow: '0px 2px 8px rgba(59, 130, 246, 0.4)' }
-      : {
-          shadowColor: '#3b82f6',
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.4,
-          shadowRadius: 8,
-          elevation: 4,
-        }),
   },
   buttonActive: {
     backgroundColor: '#06b6d4',
-    ...(Platform.OS === 'web'
-      ? { boxShadow: '0px 2px 8px rgba(6, 182, 212, 0.4)' }
-      : { shadowColor: '#06b6d4' }),
   },
   icon: {
     fontSize: 24,

@@ -12,7 +12,7 @@ import { router } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function LoginScreen() {
-  const { signInWithGithub, signInWithEmail, signUpWithEmail, loading } = useAuth();
+  const { signInWithGoogle, signInWithEmail, signUpWithEmail, loading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
@@ -39,13 +39,13 @@ export default function LoginScreen() {
     return fallbackMessage;
   };
 
-  const handleGithubSignIn = async () => {
+  const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
-      await signInWithGithub();
+      await signInWithGoogle();
       router.replace('/(tabs)');
     } catch (error) {
-      Alert.alert('Sign In Error', getAuthErrorMessage(error, 'Failed to sign in with GitHub'));
+      Alert.alert('Sign In Error', getAuthErrorMessage(error, 'Failed to sign in with Google'));
     } finally {
       setIsLoading(false);
     }
@@ -87,13 +87,13 @@ export default function LoginScreen() {
 
       <View style={styles.form}>
         <TouchableOpacity
-          onPress={handleGithubSignIn}
+          onPress={handleGoogleSignIn}
           style={styles.githubButton}
           disabled={isLoading}
-          accessibilityLabel="Sign in with GitHub"
+          accessibilityLabel="Sign in with Google"
           accessibilityRole="button"
         >
-          <Text style={styles.githubButtonText}>⊛ Continue with GitHub</Text>
+          <Text style={styles.githubButtonText}>⊛ Continue with Google</Text>
         </TouchableOpacity>
 
         <View style={styles.divider}>

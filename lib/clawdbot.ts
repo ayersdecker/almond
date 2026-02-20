@@ -1,6 +1,19 @@
 import { ClawdbotResponse, MemoryFile, SessionStatus } from './types';
 
-const BASE_URL = process.env.EXPO_PUBLIC_CLAWDBOT_URL || '';
+const rawBaseUrl = process.env.EXPO_PUBLIC_CLAWDBOT_URL?.trim() || '';
+const BASE_URL = rawBaseUrl.replace(/\/$/, '');
+
+function getApiBaseUrl(): string {
+  if (!BASE_URL) {
+    throw new Error('Clawdbot backend is not configured. Set EXPO_PUBLIC_CLAWDBOT_URL in .env.local and restart the dev server.');
+  }
+
+  if (!/^https?:\/\//i.test(BASE_URL)) {
+    throw new Error('EXPO_PUBLIC_CLAWDBOT_URL must start with http:// or https://');
+  }
+
+  return BASE_URL;
+}
 
 async function fetchWithAuth(
   endpoint: string,
@@ -16,7 +29,7 @@ async function fetchWithAuth(
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${BASE_URL}${endpoint}`, {
+  const response = await fetch(`${getApiBaseUrl()}${endpoint}`, {
     ...options,
     headers,
   });
@@ -86,7 +99,7 @@ export async function streamMessage(
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${BASE_URL}/api/message/stream`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/message/stream`, {
     method: 'POST',
     headers,
     body: JSON.stringify({ content }),
