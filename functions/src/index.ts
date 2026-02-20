@@ -121,10 +121,10 @@ class GatewayClient {
             minProtocol: 3,
             maxProtocol: 3,
             client: {
-              id: 'almond-proxy',
+              id: 'clawdbot-control-ui',
               version: '1.0.0',
               platform: 'firebase-functions',
-              mode: 'backend',
+              mode: 'webchat',
               instanceId: `fn-${Date.now()}`,
             },
             role: 'operator',
